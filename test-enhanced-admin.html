@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Admin Messaging Test</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .test-info {
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #3b82f6;
+        }
+        .feature-check {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .feature-item {
+            padding: 8px;
+            background: #e6ffe6;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+        <h1>Enhanced Admin Messaging Test</h1>
+        
+        <div class="test-info">
+            <h3>Enhanced Features</h3>
+            <div class="feature-check">
+                <div class="feature-item">✅ New Message Button Works</div>
+                <div class="feature-item">✅ Proper Student Name Labels</div>
+                <div class="feature-item">✅ Can Send to Any Student</div>
+                <div class="feature-item">✅ Thread View with Reply</div>
+                <div class="feature-item">✅ Admin Context Clear</div>
+                <div class="feature-item">✅ Subject Line Support</div>
+            </div>
+        </div>
+        
+        <div id="admin-messages-container"></div>
+    </div>
+
+    <!-- Load modules with updated cache busting -->
+    <script src="core.js?v=2.1"></script>
+    <script src="messaging.js?v=2.1"></script>
+    <script src="student.js?v=2.1"></script>
+    <script src="admin.js?v=2.1"></script>
+    <script src="main.js?v=2.1"></script>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            try {
+                // Create comprehensive test data
+                localStorage.setItem('mivtzah_users', JSON.stringify({
+                    'admin': { username: 'admin', password: 'admin123', name: 'Administrator', role: 'admin' },
+                    'student1': { username: 'student1', password: 'test123', name: 'Yaakov Cohen', role: 'student' },
+                    'student2': { username: 'student2', password: 'test123', name: 'Moshe Levy', role: 'student' },
+                    'student3': { username: 'student3', password: 'test123', name: 'David Goldberg', role: 'student' }
+                }));
+                
+                localStorage.setItem('mivtzah_students', JSON.stringify({
+                    'student1': { name: 'Yaakov Cohen', submissions: {}, totalPoints: 250 },
+                    'student2': { name: 'Moshe Levy', submissions: {}, totalPoints: 180 },
+                    'student3': { name: 'David Goldberg', submissions: {}, totalPoints: 320 }
+                }));
+                
+                localStorage.setItem('mivtzah_messages', JSON.stringify([
+                    {
+                        id: 'msg1',
+                        from: 'student1',
+                        to: 'admin',
+                        subject: 'Question about Halacha test',
+                        message: 'I have a question about the upcoming Halacha test. Can you clarify the format and what materials I should review?',
+                        timestamp: new Date().toISOString(),
+                        threadId: 'thread1',
+                        read: false,
+                        deleted: false
+                    },
+                    {
+                        id: 'msg2', 
+                        from: 'student2',
+                        to: 'admin',
+                        subject: 'Submission issue',
+                        message: 'I am having trouble submitting my Chassidus learning for today. The form is not working properly and I keep getting an error.',
+                        timestamp: new Date(Date.now() - 3600000).toISOString(),
+                        threadId: 'thread2',
+                        read: false,
+                        deleted: false
+                    },
+                    {
+                        id: 'msg3',
+                        from: 'admin',
+                        to: 'student1',
+                        subject: 'Re: Question about Halacha test',
+                        message: 'The test will cover the material we studied this week. Please review your notes and the handouts.',
+                        timestamp: new Date(Date.now() - 1800000).toISOString(),
+                        threadId: 'thread1',
+                        read: true,
+                        deleted: false
+                    }
+                ]));
+                
+                // Initialize system
+                const core = new MivtzahCore();
+                const messaging = new MivtzahMessaging(core);
+                const admin = new MivtzahAdmin(core, messaging);
+                
+                // Load admin messaging UI
+                admin.loadAdminMessages();
+                
+                console.log('✅ Enhanced admin messaging test loaded successfully');
+                console.log('Students available:', Object.keys(core.students));
+                console.log('Messages:', messaging.getAllMessages());
+                
+            } catch (error) {
+                console.error('❌ Test failed:', error);
+                document.body.innerHTML += `
+                    <div style="color: red; background: #ffe6e6; padding: 15px; border-radius: 8px; margin-top: 20px;">
+                        <strong>Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

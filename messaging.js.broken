@@ -1,0 +1,674 @@
+// Shiur Gimmel Summer Mivtzah 2025 - Messaging System
+class MivtzahMessaging {
+    constructor(core) {
+        this.core = core;
+        this.inboxTab = 'inbox'; // Current inbox tab for students
+        this.adminInboxTab = 'inbox'; // Current inbox tab for admin
+        this.isComposing = false;
+        this.isReplying = false;
+        this.isAdminComposing = false;
+        this.isAdminReplying = false;
+    }
+
+    // Message data management
+    getMessages() {
+        return this.core.loadData('messages') || [];
+    }    saveMessages(messages) {
+                         ${thread.map(msg => {
+                        return `<div class="message-item ${msg.from === role ? 'sent' : 'received'}">`re.saveData('messages', messages);
+    }sendMessage({ from, to, body, subject, senderRole, threadId = null }) {
+        const messages = this.getMessages();
+        const timestamp = new Date().toISOString();
+        const messageThreadId = threadId || `thread_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+        const newMessage = {
+            id: Date.now(),
+            threadId: messageThreadId,
+            from,
+            to,
+            message: body, // Store as 'message' for consistency
+            subject: subject || 'No Subject',
+            timestamp,
+            read: false,
+            deleted: false,
+            senderRole: senderRole || 'student'
+        };
+
+        messages.push(newMessage);
+        this.saveMessages(messages);
+        return messageThreadId;
+    }
+
+    markThreadRead(threadId, username) {
+        const messages = this.getMessages();
+        let changed = false;
+        messages.forEach(msg => {
+            if (msg.threadId === threadId && msg.to === username && !msg.read) {
+                msg.read = true;
+                changed = true;
+            }
+        });
+        if (changed) {
+            this.saveMessages(messages);
+        }
+    }
+
+    getThreadsForUser(username, role, filter = 'all') {
+        const messages = this.getMessages();
+        const userMessages = messages.filter(msg => 
+            (msg.from === username || msg.to === username)
+        );
+
+        // Group by thread
+        const threadsMap = {};
+        userMessages.forEach(msg => {
+            if (!threadsMap[msg.threadId]) {
+                threadsMap[msg.threadId] = [];
+            }
+            threadsMap[msg.threadId].push(msg);
+        });
+
+        // Convert to array and sort each thread by timestamp
+        let threads = Object.values(threadsMap).map(thread => 
+            thread.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+        );
+
+        // Apply filters
+        if (filter === 'inbox') {
+            threads = threads.filter(thread => {
+                const hasUnread = thread.some(msg => msg.to === username && !msg.read);
+                const notDeleted = !thread.some(msg => msg.deleted);
+                return hasUnread && notDeleted;
+            });
+        } else if (filter === 'trash') {
+            threads = threads.filter(thread => 
+                thread.some(msg => msg.deleted)
+            );
+        } else {
+            // 'all' - exclude deleted threads
+            threads = threads.filter(thread => 
+                !thread.some(msg => msg.deleted)
+            );
+        }
+
+        // Sort threads by latest message timestamp
+        threads.sort((a, b) => {
+            const aLatest = Math.max(...a.map(msg => new Date(msg.timestamp)));
+            const bLatest = Math.max(...b.map(msg => new Date(msg.timestamp)));
+            return bLatest - aLatest;
+        });
+
+        return threads;
+    }
+
+    updateMessagesBadge() {
+        const unreadCount = this.getThreadsForUser(this.core.loggedInUser, 'student', 'inbox').length;
+        const badge = document.querySelector('.nav-item[data-tab="messages"] .badge');
+        if (badge) {
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+    }
+
+    // Student messaging UI
+    generateInboxUI(role) {
+        const inboxThreads = this.getThreadsForUser(this.core.loggedInUser, role, 'inbox');
+        const allThreads = this.getThreadsForUser(this.core.loggedInUser, role, 'all');
+        const trashThreads = this.getThreadsForUser(this.core.loggedInUser, role, 'trash');
+
+        return `
+            <div class="inbox-header">
+                <h4>Messages</h4>
+                <button id="student-compose-btn" class="btn btn-primary btn-sm">
+                    <i data-lucide="edit-3"></i> New Message
+                </button>
+            </div>
+
+            <div id="inbox-thread-view"></div>
+
+            <div class="inbox-tabs">
+                <div class="inbox-tab-nav">
+                    <button class="inbox-tab-btn ${this.inboxTab === 'inbox' ? 'active' : ''}" data-tab="inbox">
+                        Inbox ${inboxThreads.length > 0 ? `(${inboxThreads.length})` : ''}
+                    </button>
+                    <button class="inbox-tab-btn ${this.inboxTab === 'all' ? 'active' : ''}" data-tab="all">
+                        All ${allThreads.length > 0 ? `(${allThreads.length})` : ''}
+                    </button>
+                    <button class="inbox-tab-btn ${this.inboxTab === 'trash' ? 'active' : ''}" data-tab="trash">
+                        Trash ${trashThreads.length > 0 ? `(${trashThreads.length})` : ''}
+                    </button>
+                </div>
+
+                <div class="inbox-tab-content">
+                    ${this.generateInboxTabContent(this.core.loggedInUser, role)}
+                </div>
+            </div>
+
+            <div id="student-compose-modal" class="modal hidden">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4>New Message to Admin</h4>
+                        <button id="close-student-compose-modal" class="btn-close">
+                            <i data-lucide="x"></i>
+                        </button>
+                    </div>                    <div class="modal-body">
+                        <div class="input-group">
+                            <label>Message</label>
+                            <textarea id="student-compose-message" rows="6" placeholder="Type your message to admin..." class="full-width"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="cancel-student-compose" class="btn btn-outline">Cancel</button>
+                        <button id="send-student-compose" class="btn btn-primary">Send Message</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    generateInboxTabContent(username, role) {
+        const threads = this.getThreadsForUser(username, role, this.inboxTab);
+
+        if (!threads.length) {
+            const emptyMessages = {
+                inbox: 'No unread messages.',
+                all: 'No messages yet.',
+                trash: 'No deleted messages.'
+            };
+            return `<div class="empty-state">
+                <p>${emptyMessages[this.inboxTab]}</p>
+                <p class="empty-state-subtext">${this.inboxTab === 'inbox' ? 'New messages from admin will appear here.' : this.inboxTab === 'trash' ? 'Deleted messages will appear here.' : 'Your conversations will appear here.'}</p>
+            </div>`;
+        }
+
+        return `
+            <div class="inbox-list">                ${threads.map(thread => {
+                    const lastMsg = thread[thread.length - 1];
+                    const unread = thread.some(msg => msg.to === username && !msg.read && !msg.deleted);
+                    const isDeleted = thread.some(msg => msg.deleted);
+  
+
+                    return `<div class="inbox-thread ${unread ? 'unread' : ''} ${isDeleted ? 'deleted' : ''}" data-thread="${thread[0].threadId}">
+                        <div class="thread-content">
+                            <div class="thread-title">Admin</div>
+                            <div class="thread-snippet">${(() => {
+                                const content = lastMsg.message || lastMsg.body || lastMsg.content || 'Message content unavailable';
+                                return content.slice(0, 60) + (content.length > 60 ? '...' : '');
+                            })()}</div>
+                            <div class="thread-time">${new Date(lastMsg.timestamp).toLocaleString()}</div>
+                        </div>
+                        ${unread ? '<span class="unread-dot"></span>' : ''}
+                        <div class="thread-actions">
+                            ${this.inboxTab === 'trash' ? `
+                                <button class="btn btn-outline btn-sm thread-action-btn" onclick="window.messaging.restoreThread('${thread[0].threadId}')" title="Restore">
+                                    <i data-lucide="undo"></i> Restore
+                                </button>
+                            ` : `
+                                <button class="btn btn-outline btn-sm thread-action-btn" onclick="window.messaging.deleteThread('${thread[0].threadId}')" title="Delete">
+                                    <i data-lucide="trash-2"></i> Delete
+                                </button>
+                            `}
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>
+        `;
+    }
+
+    setupMessagesEventListeners() {        // Student compose message
+        const composeBtn = document.getElementById('student-compose-btn');
+        if (composeBtn) {
+            composeBtn.addEventListener('click', () => {
+                document.getElementById('student-compose-modal').classList.remove('hidden');
+                document.getElementById('student-compose-message').focus();
+            });
+        }
+
+        // Close compose modal
+        const closeComposeBtn = document.getElementById('close-student-compose-modal');
+        if (closeComposeBtn) {
+            closeComposeBtn.addEventListener('click', () => {
+                this.hideStudentComposeModal();
+            });
+        }
+
+        // Cancel compose
+        const cancelComposeBtn = document.getElementById('cancel-student-compose');
+        if (cancelComposeBtn) {
+            cancelComposeBtn.addEventListener('click', () => {
+                this.hideStudentComposeModal();
+            });
+        }
+
+        // Send compose
+        const sendComposeBtn = document.getElementById('send-student-compose');
+        if (sendComposeBtn) {
+            sendComposeBtn.addEventListener('click', () => {
+                this.sendStudentCompose();
+            });
+        }
+
+        // Close modal on background click
+        const modal = document.getElementById('student-compose-modal');
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target.id === 'student-compose-modal') {
+                    this.hideStudentComposeModal();
+                }
+            });
+        }
+
+        // Inbox tab switching
+        document.querySelectorAll('.inbox-tabs .inbox-tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Update active tab
+                document.querySelectorAll('.inbox-tabs .inbox-tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                // Update inbox tab state
+                this.inboxTab = btn.dataset.tab;
+
+                // Refresh tab content
+                this.refreshInboxTab();
+
+                // Clear thread view and show message list
+                document.getElementById('inbox-thread-view').innerHTML = '';
+                document.querySelector('.inbox-tabs').classList.remove('hidden');
+            });
+        });
+
+        // Inbox thread click
+        document.querySelectorAll('.inbox-tabs .inbox-thread').forEach(threadEl => {
+            threadEl.addEventListener('click', (e) => {
+                // Prevent clicking action buttons from triggering thread view
+                if (e.target.closest('.thread-action-btn')) return;
+
+                const threadId = threadEl.dataset.thread;
+                this.showThreadView(threadId, 'student');
+            });
+        });
+    }    hideStudentComposeModal() {
+        document.getElementById('student-compose-modal').classList.add('hidden');
+        // Clear form
+        document.getElementById('student-compose-message').value = '';
+    }sendStudentCompose() {
+        // Prevent multiple sends
+        if (this.isComposing) return;
+        this.isComposing = true;
+
+        const message = document.getElementById('student-compose-message').value.trim();
+
+        if (!message) {
+            this.core.showNotification('Missing Information', 'Please enter your message', 'warning');
+            this.isComposing = false;
+            return;
+        }
+
+        this.core.showLoading('Sending message...');
+
+        setTimeout(() => {
+            const threadId = this.sendMessage({
+                from: this.core.loggedInUser,
+                to: 'admin',
+                body: message,
+                subject: 'Student Message',
+                senderRole: 'student',
+                threadId: null
+            });
+
+            this.core.hideLoading();
+            this.hideStudentComposeModal();
+            this.core.showNotification('Message Sent!', 'Your message has been sent to the admin successfully.', 'success');
+
+            // Reset compose flag
+            this.isComposing = false;
+
+            // Refresh inbox
+            setTimeout(() => {
+                const container = document.getElementById('messages-container');
+                container.innerHTML = this.generateInboxUI('student');
+                this.setupMessagesEventListeners();
+                // Switch to All tab to show the sent message
+                const allTab = document.querySelector('.inbox-tabs .inbox-tab-btn[data-tab="all"]');
+                if (allTab) {
+                    allTab.click();
+                }
+                // Initialize Lucide icons
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
+            }, 600);
+        }, 800);
+    }
+
+    showThreadView(threadId, role) {
+        const username = this.core.loggedInUser;
+        const threads = this.getThreadsForUser(username, role);
+        const thread = threads.find(t => t[0].threadId === threadId);
+        if (!thread) return;
+
+        // Mark as read
+        this.markThreadRead(threadId, username);
+        // Update inbox badge and refresh tabs after marking as read
+        this.updateMessagesBadge();
+        this.refreshInboxTab();        // Render messages
+        const messagesHtml = thread.map(msg => {
+            const isMe = msg.from === username;
+            const content = msg.message || msg.body || msg.content || 'Message content unavailable';
+            return `<div class="inbox-msg ${isMe ? 'me' : 'them'}">
+                <div class="msg-body">${content}</div>
+                <div class="msg-meta">${isMe ? 'You' : 'Admin'} • ${new Date(msg.timestamp).toLocaleString()}</div>
+            </div>`;
+        }).join('');
+
+        // Reply box
+        const replyBox = `<div class="inbox-reply-box">
+            <input id="inbox-reply-input" type="text" placeholder="Type your reply..." />
+            <button id="inbox-reply-btn" class="btn btn-primary" data-thread="${threadId}">
+                <i data-lucide="send"></i> Send
+            </button>
+        </div>`;
+
+        document.getElementById('inbox-thread-view').innerHTML = `
+            <div class="thread-view-header">
+                <button id="back-to-messages" class="btn btn-outline btn-sm">
+                    <i data-lucide="arrow-left"></i> Back to Messages
+                </button>
+                <h5>Conversation with Admin</h5>
+            </div>
+            <div class="inbox-messages">${messagesHtml}</div>
+            ${replyBox}
+        `;
+
+        // Hide the inbox tabs and message list when thread is open
+        document.querySelector('.inbox-tabs').classList.add('hidden');
+
+        // Add Enter key support for reply
+        const replyInput = document.getElementById('inbox-reply-input');
+        if (replyInput) {
+            replyInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    document.getElementById('inbox-reply-btn').click();
+                }
+            });
+        }
+
+        // Add reply functionality
+        const replyBtn = document.getElementById('inbox-reply-btn');
+        if (replyBtn) {
+            replyBtn.addEventListener('click', () => {
+                if (this.isReplying) return;
+                this.isReplying = true;
+
+                const threadId = replyBtn.dataset.thread;
+                const input = document.getElementById('inbox-reply-input');
+                const body = input.value.trim();
+
+                if (body) {
+                    this.sendMessage({
+                        from: this.core.loggedInUser,
+                        to: 'admin',
+                        body,
+                        senderRole: 'student',
+                        threadId
+                    });
+                    input.value = '';
+                    // Refresh the thread view only
+                    this.showThreadView(threadId, role);
+
+                    // Focus the reply input again for better UX
+                    setTimeout(() => {
+                        const newInput = document.getElementById('inbox-reply-input');
+                        if (newInput) {
+                            newInput.focus();
+                        }
+                    }, 100);
+                }
+
+                // Reset reply flag after a short delay
+                setTimeout(() => {
+                    this.isReplying = false;
+                }, 1000);
+            });
+        }
+
+        // Back to messages button
+        const backBtn = document.getElementById('back-to-messages');
+        if (backBtn) {
+            backBtn.addEventListener('click', () => {
+                document.getElementById('inbox-thread-view').innerHTML = '';
+                // Show the inbox tabs and message list again
+                document.querySelector('.inbox-tabs').classList.remove('hidden');
+                // Reinitialize Lucide icons after clearing
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
+            });
+        }
+
+        this.setupMessagesEventListeners();
+    }
+
+    // Thread management (delete/restore)
+    deleteThread(threadId) {
+        const messages = this.getMessages();
+        let changed = false;
+        messages.forEach(msg => {
+            if (msg.threadId === threadId && (msg.from === this.core.loggedInUser || msg.to === this.core.loggedInUser)) {
+                msg.deleted = true;
+                changed = true;
+            }
+        });
+        if (changed) {
+            this.saveMessages(messages);
+            this.core.showNotification('Thread Deleted', 'Conversation moved to trash', 'success');
+            this.refreshInboxTab();
+            this.updateMessagesBadge();
+        }
+    }
+
+    restoreThread(threadId) {
+        const messages = this.getMessages();
+        let changed = false;
+        messages.forEach(msg => {
+            if (msg.threadId === threadId && (msg.from === this.core.loggedInUser || msg.to === this.core.loggedInUser)) {
+                msg.deleted = false;
+                changed = true;
+            }
+        });
+        if (changed) {
+            this.saveMessages(messages);
+            this.core.showNotification('Thread Restored', 'Conversation restored from trash', 'success');
+            this.refreshInboxTab();
+            this.updateMessagesBadge();
+        }
+    }
+
+    // Add the missing refreshInboxTab method
+    refreshInboxTab() {
+        const tabContent = document.querySelector('.inbox-tabs .inbox-tab-content');
+        if (tabContent) {
+            tabContent.innerHTML = this.generateInboxTabContent(this.core.loggedInUser, 'student');
+            // Ensure inbox tabs are visible
+            document.querySelector('.inbox-tabs').classList.remove('hidden');
+
+            // Update tab counts
+            const inboxThreads = this.getThreadsForUser(this.core.loggedInUser, 'student', 'inbox');
+            const allThreads = this.getThreadsForUser(this.core.loggedInUser, 'student', 'all');
+            const trashThreads = this.getThreadsForUser(this.core.loggedInUser, 'student', 'trash');
+
+            document.querySelector('.inbox-tabs .inbox-tab-btn[data-tab="inbox"]').innerHTML =
+                `Inbox ${inboxThreads.length > 0 ? `(${inboxThreads.length})` : ''}`;
+            document.querySelector('.inbox-tabs .inbox-tab-btn[data-tab="all"]').innerHTML =
+                `All ${allThreads.length > 0 ? `(${allThreads.length})` : ''}`;
+            document.querySelector('.inbox-tabs .inbox-tab-btn[data-tab="trash"]').innerHTML =
+                `Trash ${trashThreads.length > 0 ? `(${trashThreads.length})` : ''}`;
+
+            this.setupMessagesEventListeners();
+            // Initialize Lucide icons
+            if (window.lucide) {
+                window.lucide.createIcons();
+            }
+        }
+    }
+
+    // Additional methods for admin functionality
+    createThread(to, from, subject, message) {
+        const threadId = `thread_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const messageData = {
+            id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            from: from,
+            to: to,
+            subject: subject,
+            message: message,
+            timestamp: new Date().toISOString(),
+            threadId: threadId,
+            read: false,
+            deleted: false
+        };
+        
+        const messages = this.getMessages();
+        messages.push(messageData);
+        this.saveMessages(messages);
+        
+        return threadId;
+    }
+
+    getThread(threadId) {
+        const messages = this.getMessages();
+        return messages.filter(msg => msg.threadId === threadId && !msg.deleted)
+                      .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    }
+
+    generateThreadView(thread, role) {
+        if (!thread || thread.length === 0) {
+            return '<div class="thread-empty">Thread not found or empty</div>';
+        }
+
+        const firstMessage = thread[0];
+        const lastMessage = thread[thread.length - 1];
+        
+        return `
+            <div class="thread-view-container">
+                <div class="thread-view-header">
+                    <div class="thread-view-title">
+                        <h4>${firstMessage.subject || 'No Subject'}</h4>
+                        <span class="thread-participants">
+                            ${role === 'admin' ? 
+                                `From: ${this.core?.students[firstMessage.from]?.name || firstMessage.from}` :
+                                `To: Admin`
+                            }
+                        </span>
+                    </div>
+                    <div class="thread-view-actions">
+                        <button class="btn btn-secondary btn-sm reply-thread-btn" data-thread-id="${firstMessage.threadId}">
+                            <i data-lucide="reply"></i> Reply
+                        </button>
+                        <button class="btn btn-outline btn-sm back-to-inbox-btn">
+                            <i data-lucide="arrow-left"></i> Back to Inbox
+                        </button>
+                    </div>
+                </div>
+                  <div class="thread-messages">
+                    ${thread.map(msg => {
+                        // Debug logging for thread view
+                        console.log('Thread view - Message debug:', {
+                            from: msg.from,
+                            messageField: msg.message,
+                            bodyField: msg.body,
+                            finalContent: (msg.message || msg.body || 'NO CONTENT')
+                        });
+                        
+                        return `<div class="message-item ${msg.from === role ? 'sent' : 'received'}">
+                            <div class="message-header">
+                                <span class="message-from">${msg.from === 'admin' ? 'Admin' : (this.core?.students[msg.from]?.name || msg.from)}</span>
+                                <span class="message-time">${this.core?.formatDate ? this.core.formatDate(msg.timestamp) : new Date(msg.timestamp).toLocaleString()}</span>
+                            </div>
+                            <div class="message-content">${msg.message || msg.body || msg.content || 'Message content unavailable'}</div>
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    setupThreadViewEventListeners(thread, role) {
+        // Back to inbox button
+        const backBtn = document.querySelector('.back-to-inbox-btn');
+        if (backBtn) {
+            backBtn.addEventListener('click', () => {
+                const threadView = document.getElementById('admin-inbox-thread-view') || document.getElementById('inbox-thread-view');
+                if (threadView) {
+                    threadView.innerHTML = '';
+                }
+                // Reload inbox if admin
+                if (role === 'admin' && window.platform?.admin) {
+                    window.platform.admin.loadAdminMessages();
+                }
+            });
+        }
+
+        // Reply button
+        const replyBtn = document.querySelector('.reply-thread-btn');
+        if (replyBtn) {
+            replyBtn.addEventListener('click', () => {
+                // For admin, open compose modal with recipient pre-filled
+                if (role === 'admin' && window.platform?.admin) {
+                    window.platform.admin.isAdminReplying = true;
+                    window.platform.admin.replyToThread = thread[0];
+                    const composeModal = document.getElementById('admin-compose-modal');
+                    if (composeModal) {
+                        composeModal.classList.remove('hidden');
+                        // Pre-fill recipient
+                        const recipientSelect = document.getElementById('admin-compose-recipient');
+                        if (recipientSelect) {
+                            recipientSelect.value = thread[0].from;
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize Lucide icons
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
+    }
+
+    moveThreadToTrash(threadId) {
+        const messages = this.getMessages();
+        let changed = false;
+        messages.forEach(msg => {
+            if (msg.threadId === threadId) {
+                msg.deleted = true;
+                changed = true;
+            }
+        });
+        if (changed) {
+            this.saveMessages(messages);
+        }
+    }
+
+    restoreThreadFromTrash(threadId) {
+        const messages = this.getMessages();
+        let changed = false;
+        messages.forEach(msg => {
+            if (msg.threadId === threadId) {
+                msg.deleted = false;
+                changed = true;
+            }
+        });
+        if (changed) {
+            this.saveMessages(messages);
+        }
+    }
+
+    getAllMessages() {
+        return this.getMessages();
+    }
+}

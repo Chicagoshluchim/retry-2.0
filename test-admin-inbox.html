@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Inbox UI Test</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <h1>Admin Inbox UI Test</h1>
+        <div id="admin-messages-container"></div>
+        <div id="test-info"></div>
+    </div>
+
+    <!-- Load modules -->
+    <script src="core.js?v=1.2"></script>
+    <script src="messaging.js?v=1.2"></script>
+    <script src="student.js?v=1.2"></script>
+    <script src="admin.js?v=1.2"></script>
+    <script src="main.js?v=1.2"></script>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            try {
+                // Initialize the system
+                const core = new MivtzahCore();
+                const messaging = new MivtzahMessaging();
+                const admin = new MivtzahAdmin();
+                
+                // Create some test data if needed
+                if (!core.users['teststudent']) {
+                    core.users['teststudent'] = {
+                        username: 'teststudent',
+                        password: 'test123',
+                        name: 'Test Student',
+                        role: 'student'
+                    };
+                    core.students['teststudent'] = {
+                        name: 'Test Student',
+                        submissions: {},
+                        totalPoints: 0
+                    };
+                    core.saveData();
+                }
+
+                // Create a test message if none exist
+                const existingMessages = messaging.getAllMessages();
+                if (existingMessages.length === 0) {
+                    messaging.sendMessage('teststudent', 'admin', 'Test Subject', 'This is a test message from a student to admin.');
+                }
+
+                // Initialize admin with dependencies
+                admin.core = core;
+                admin.messaging = messaging;
+                
+                // Load the admin inbox UI
+                admin.loadAdminMessages();
+                
+                // Display test info
+                const testInfo = document.getElementById('test-info');
+                const threads = messaging.getThreadsForUser('admin', 'admin', 'inbox');
+                testInfo.innerHTML = `
+                    <div style="background: #f0f0f0; padding: 20px; margin-top: 20px; border-radius: 8px;">
+                        <h3>Test Information</h3>
+                        <p><strong>Users:</strong> ${Object.keys(core.users).length}</p>
+                        <p><strong>Messages:</strong> ${existingMessages.length}</p>
+                        <p><strong>Inbox Threads:</strong> ${threads ? threads.length : 0}</p>
+                        <p><strong>Admin Inbox Tab:</strong> ${admin.adminInboxTab}</p>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('Test setup error:', error);
+                document.getElementById('test-info').innerHTML = `
+                    <div style="background: #ffe6e6; padding: 20px; margin-top: 20px; border-radius: 8px;">
+                        <h3>Error</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

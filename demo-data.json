@@ -1,0 +1,5 @@
+{
+  "mivtzah_users": "{\"admin\":{\"username\":\"admin\",\"password\":\"admin123\",\"name\":\"Administrator\",\"role\":\"admin\"},\"student1\":{\"username\":\"student1\",\"password\":\"test123\",\"name\":\"Yaakov Cohen\",\"role\":\"student\"},\"student2\":{\"username\":\"student2\",\"password\":\"test123\",\"name\":\"Moshe Levy\",\"role\":\"student\"}}",
+  "mivtzah_students": "{\"student1\":{\"name\":\"Yaakov Cohen\",\"submissions\":{},\"totalPoints\":250},\"student2\":{\"name\":\"Moshe Levy\",\"submissions\":{},\"totalPoints\":180}}",
+  "mivtzah_messages": "[{\"id\":\"msg1\",\"from\":\"student1\",\"to\":\"admin\",\"subject\":\"Question about Halacha test\",\"message\":\"I have a question about the upcoming Halacha test. Can you clarify the format?\",\"timestamp\":\"2025-06-23T04:42:35.514Z\",\"threadId\":\"thread1\",\"read\":false},{\"id\":\"msg2\",\"from\":\"student2\",\"to\":\"admin\",\"subject\":\"Submission issue\",\"message\":\"I am having trouble submitting my Chassidus learning for today. The form is not working.\",\"timestamp\":\"2025-06-23T03:42:35.515Z\",\"threadId\":\"thread2\",\"read\":false}]"
+}

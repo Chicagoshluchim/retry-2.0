@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fixed Admin Messaging Test</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+        <h1>Fixed Admin Messaging Test</h1>
+        
+        <div id="test-status" style="background: #f0f0f0; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            Loading...
+        </div>
+        
+        <div id="admin-messages-container"></div>
+    </div>
+
+    <!-- Load modules with updated cache busting -->
+    <script src="core.js?v=1.5"></script>
+    <script src="messaging.js?v=1.5"></script>
+    <script src="student.js?v=1.5"></script>
+    <script src="admin.js?v=1.5"></script>
+    <script src="main.js?v=1.5"></script>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const testStatus = document.getElementById('test-status');
+            
+            try {
+                // Create test data
+                localStorage.setItem('mivtzah_users', JSON.stringify({
+                    'admin': { username: 'admin', password: 'admin123', name: 'Administrator', role: 'admin' },
+                    'student1': { username: 'student1', password: 'test123', name: 'Yaakov Cohen', role: 'student' },
+                    'student2': { username: 'student2', password: 'test123', name: 'Moshe Levy', role: 'student' }
+                }));
+                
+                localStorage.setItem('mivtzah_students', JSON.stringify({
+                    'student1': { name: 'Yaakov Cohen', submissions: {}, totalPoints: 250 },
+                    'student2': { name: 'Moshe Levy', submissions: {}, totalPoints: 180 }
+                }));
+                
+                localStorage.setItem('mivtzah_messages', JSON.stringify([
+                    {
+                        id: 'msg1',
+                        from: 'student1',
+                        to: 'admin',
+                        subject: 'Question about Halacha test',
+                        message: 'I have a question about the upcoming Halacha test. Can you clarify the format?',
+                        timestamp: new Date().toISOString(),
+                        threadId: 'thread1',
+                        read: false,
+                        deleted: false
+                    },
+                    {
+                        id: 'msg2',
+                        from: 'student2',
+                        to: 'admin',
+                        subject: 'Submission issue',
+                        message: 'I am having trouble submitting my Chassidus learning for today. The form is not working.',
+                        timestamp: new Date(Date.now() - 3600000).toISOString(),
+                        threadId: 'thread2',
+                        read: false,
+                        deleted: false
+                    }
+                ]));
+                
+                // Initialize system
+                const core = new MivtzahCore();
+                const messaging = new MivtzahMessaging(core);
+                const admin = new MivtzahAdmin(core, messaging);
+                
+                // Test messaging methods
+                const allMessages = messaging.getAllMessages();
+                const threads = messaging.getThreadsForUser('admin', 'admin', 'inbox');
+                
+                testStatus.innerHTML = `
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+                        <div><strong>Messages:</strong> ${allMessages.length}</div>
+                        <div><strong>Threads:</strong> ${threads.length}</div>
+                        <div><strong>Status:</strong> <span style="color: green;">✓ Ready</span></div>
+                    </div>
+                `;
+                
+                // Load admin inbox
+                admin.loadAdminMessages();
+                
+                console.log('✅ Admin messaging test completed successfully');
+                console.log('Messages:', allMessages);
+                console.log('Threads:', threads);
+                
+            } catch (error) {
+                console.error('❌ Test failed:', error);
+                testStatus.innerHTML = `
+                    <div style="color: red;">
+                        <strong>Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

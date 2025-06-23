@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mivtzah System - Functionality Test</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <h1>Shiur Gimmel Summer Mivtzah 2025 - Test Page</h1>
+        <div id="test-results"></div>
+        <div id="main-content"></div>
+    </div>
+
+    <!-- Load modules -->
+    <script src="core.js?v=1.1"></script>
+    <script src="messaging.js?v=1.1"></script>
+    <script src="student.js?v=1.1"></script>
+    <script src="admin.js?v=1.1"></script>
+    <script src="main.js?v=1.1"></script>
+
+    <script>
+        // Test functionality
+        window.addEventListener('DOMContentLoaded', () => {
+            const testResults = document.getElementById('test-results');
+            const tests = [];
+
+            // Test core module
+            try {
+                const core = new MivtzahCore();
+                tests.push('✅ MivtzahCore loads successfully');
+            } catch (e) {
+                tests.push('❌ MivtzahCore failed: ' + e.message);
+            }
+
+            // Test messaging module
+            try {
+                const messaging = new MivtzahMessaging();
+                tests.push('✅ MivtzahMessaging loads successfully');
+            } catch (e) {
+                tests.push('❌ MivtzahMessaging failed: ' + e.message);
+            }
+
+            // Test student module
+            try {
+                const student = new MivtzahStudent();
+                tests.push('✅ MivtzahStudent loads successfully');
+            } catch (e) {
+                tests.push('❌ MivtzahStudent failed: ' + e.message);
+            }
+
+            // Test admin module
+            try {
+                const admin = new MivtzahAdmin();
+                tests.push('✅ MivtzahAdmin loads successfully');
+            } catch (e) {
+                tests.push('❌ MivtzahAdmin failed: ' + e.message);
+            }
+
+            // Test main module
+            try {
+                const app = new MivtzahApp();
+                tests.push('✅ MivtzahApp loads successfully');
+                
+                // Test if demo admin exists
+                if (app.core.users['admin']) {
+                    tests.push('✅ Demo admin account exists');
+                } else {
+                    tests.push('❌ Demo admin account missing');
+                }
+            } catch (e) {
+                tests.push('❌ MivtzahApp failed: ' + e.message);
+            }
+
+            testResults.innerHTML = `
+                <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <h2>Module Load Tests</h2>
+                    ${tests.map(test => `<div>${test}</div>`).join('')}
+                    <div style="margin-top: 15px;">
+                        <strong>All modules loaded ${tests.filter(t => t.includes('✅')).length}/${tests.length} successfully!</strong>
+                    </div>
+                </div>
+            `;
+
+            // Try to render main app
+            try {
+                const mainContent = document.getElementById('main-content');
+                mainContent.innerHTML = '<h3>App is ready! <a href="index.html">Go to main application</a></h3>';
+            } catch (e) {
+                console.error('Error rendering app:', e);
+            }
+        });
+    </script>
+</body>
+</html>

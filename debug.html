@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Debug Test</h1>
+    
+    <div class="test-section">
+        <h3>JavaScript Loading Test</h3>
+        <div id="js-test">Testing JavaScript...</div>
+    </div>    <div class="test-section">
+        <h3>Modular Scripts Loading Test</h3>
+        <div id="class-test">Testing modular script loading...</div>
+    </div>
+
+    <div class="test-section">
+        <h3>Module Classes Test</h3>
+        <div id="profile-test">Testing module classes...</div>
+    </div><script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <!-- Load modular scripts in order -->
+    <script src="core.js"></script>
+    <script src="messaging.js"></script>
+    <script src="student.js"></script>
+    <script src="admin.js"></script>
+    <script src="main.js"></script>
+    
+    <script>
+        // Test JavaScript loading
+        document.getElementById('js-test').innerHTML = '<span class="success">JavaScript loaded successfully!</span>';
+
+        // Test if modular scripts load without errors
+        try {
+            document.getElementById('class-test').innerHTML = '<span class="success">Modular scripts loaded successfully!</span>';
+            
+            // Test MivtzahPlatform instantiation
+            try {
+                const testApp = new MivtzahPlatform();
+                document.getElementById('profile-test').innerHTML = '<span class="success">MivtzahPlatform class works!</span>';
+                
+                // Test that modules are properly loaded
+                try {
+                    if (typeof MivtzahCore !== 'undefined' && 
+                        typeof MivtzahMessaging !== 'undefined' && 
+                        typeof MivtzahStudent !== 'undefined' && 
+                        typeof MivtzahAdmin !== 'undefined') {
+                        document.getElementById('profile-test').innerHTML += '<br><span class="success">All modules loaded correctly!</span>';
+                    } else {
+                        document.getElementById('profile-test').innerHTML += '<br><span class="error">Some modules missing!</span>';
+                    }
+                } catch(e) {
+                    document.getElementById('profile-test').innerHTML += '<br><span class="error">Module test error: ' + e.message + '</span>';
+                }
+            } catch(e) {
+                document.getElementById('profile-test').innerHTML = '<span class="error">MivtzahPlatform error: ' + e.message + '</span>';
+            }
+        } catch(e) {
+            document.getElementById('class-test').innerHTML = '<span class="error">Module loading failed: ' + e.message + '</span>';
+        }
+    </script>
+</body>
+</html>

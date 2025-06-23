@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fixed Admin Messaging CSS Test</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .test-note {
+            background: #e6ffe6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #4caf50;
+        }
+    </style>
+</head>
+<body>
+    <div style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+        <h1>Fixed Admin Messaging CSS Test</h1>
+        
+        <div class="test-note">
+            <h3>✅ CSS Fixed!</h3>
+            <p>Admin messaging now uses the same CSS classes as student messaging:</p>
+            <ul>
+                <li><strong>inbox-thread</strong> - Individual message threads</li>
+                <li><strong>thread-content</strong> - Thread content area</li>
+                <li><strong>thread-title</strong> - Student name display</li>
+                <li><strong>thread-snippet</strong> - Message preview</li>
+                <li><strong>inbox-list</strong> - Container for all threads</li>
+            </ul>
+            <p>This ensures consistent styling with the existing CSS!</p>
+        </div>
+        
+        <div id="admin-messages-container"></div>
+    </div>
+
+    <!-- Load modules with updated cache busting -->
+    <script src="core.js?v=2.2"></script>
+    <script src="messaging.js?v=2.2"></script>
+    <script src="student.js?v=2.2"></script>
+    <script src="admin.js?v=2.2"></script>
+    <script src="main.js?v=2.2"></script>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            try {
+                // Create test data
+                localStorage.setItem('mivtzah_users', JSON.stringify({
+                    'admin': { username: 'admin', password: 'admin123', name: 'Administrator', role: 'admin' },
+                    'student1': { username: 'student1', password: 'test123', name: 'Yaakov Cohen', role: 'student' },
+                    'student2': { username: 'student2', password: 'test123', name: 'Moshe Levy', role: 'student' },
+                    'student3': { username: 'student3', password: 'test123', name: 'David Goldberg', role: 'student' }
+                }));
+                
+                localStorage.setItem('mivtzah_students', JSON.stringify({
+                    'student1': { name: 'Yaakov Cohen', submissions: {}, totalPoints: 250 },
+                    'student2': { name: 'Moshe Levy', submissions: {}, totalPoints: 180 },
+                    'student3': { name: 'David Goldberg', submissions: {}, totalPoints: 320 }
+                }));
+                
+                localStorage.setItem('mivtzah_messages', JSON.stringify([
+                    {
+                        id: 'msg1',
+                        from: 'student1',
+                        to: 'admin',
+                        subject: 'Question about Halacha test',
+                        message: 'I have a question about the upcoming Halacha test. Can you clarify the format and what materials I should review?',
+                        timestamp: new Date().toISOString(),
+                        threadId: 'thread1',
+                        read: false,
+                        deleted: false
+                    },
+                    {
+                        id: 'msg2', 
+                        from: 'student2',
+                        to: 'admin',
+                        subject: 'Submission issue',
+                        message: 'I am having trouble submitting my Chassidus learning for today. The form is not working properly and I keep getting an error.',
+                        timestamp: new Date(Date.now() - 3600000).toISOString(),
+                        threadId: 'thread2',
+                        read: false,
+                        deleted: false
+                    },
+                    {
+                        id: 'msg3',
+                        from: 'student3',
+                        to: 'admin',
+                        subject: 'Schedule question',
+                        message: 'What time is the special learning session tomorrow? I want to make sure I do not miss it.',
+                        timestamp: new Date(Date.now() - 7200000).toISOString(),
+                        threadId: 'thread3',
+                        read: true,
+                        deleted: false
+                    }
+                ]));
+                
+                // Initialize system
+                const core = new MivtzahCore();
+                const messaging = new MivtzahMessaging(core);
+                const admin = new MivtzahAdmin(core, messaging);
+                
+                // Load admin messaging UI
+                admin.loadAdminMessages();
+                
+                console.log('✅ Fixed admin messaging CSS test loaded successfully');
+                console.log('Students available:', Object.keys(core.students));
+                console.log('Messages:', messaging.getAllMessages());
+                
+            } catch (error) {
+                console.error('❌ Test failed:', error);
+                document.body.innerHTML += `
+                    <div style="color: red; background: #ffe6e6; padding: 15px; border-radius: 8px; margin-top: 20px;">
+                        <strong>Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -2,6 +2,8 @@
 
 A comprehensive web-based tracking system for a Jewish yeshiva's 5-week summer learning incentive program.
 
+🌐 **Live Application**: [https://chicagoshluchim.github.io/retry-2.0/](https://chicagoshluchim.github.io/retry-2.0/)
+
 ## Program Overview
 
 - **Duration**: 5 weeks (July 1 - August 3, 2025)

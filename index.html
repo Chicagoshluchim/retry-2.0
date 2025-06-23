@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shiur Gimmel Summer Mivtzah 2025</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Login Page -->
+        <div id="login-page" class="auth-container">
+            <div class="login-box">
+                <div class="login-header">
+                    <h2>Shiur Gimmel</h2>
+                    <p class="subtitle">Summer Mivtzah 2025</p>
+                    <p id="login-description">Sign in to track your progress</p>
+                </div>
+                
+                <div class="login-form">
+                    <div id="login-form" class="form-section">
+                        <div class="input-group">
+                            <label>Username</label>
+                            <input type="text" id="username" placeholder="Enter your username">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Password</label>
+                            <input type="password" id="password" placeholder="Enter your password">
+                        </div>
+                        
+                        <div id="error-message" class="error-message"></div>
+                        
+                        <button id="login-btn" class="btn btn-primary full-width">Sign In</button>
+                        
+                        <div class="form-footer">
+                            <button id="show-signup" class="link-btn">Don't have an account? Sign up here</button>
+                        </div>                        <div class="demo-info">
+                            <p class="demo-label">Demo Admin Access:</p>
+                            <p class="demo-credentials">admin / admin123</p>
+                            <p class="demo-label">Demo Student Access:</p>
+                            <p class="demo-credentials">student1 / password123</p>
+                            <p class="demo-credentials">demo / demo123</p>
+                        </div>
+                    </div>
+
+                    <div id="signup-form" class="form-section hidden">
+                        <div class="input-group">
+                            <label>Full Name</label>
+                            <input type="text" id="signup-name" placeholder="e.g., Yossi Cohen">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Username</label>
+                            <input type="text" id="signup-username" placeholder="e.g., yossi.cohen">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Password</label>
+                            <input type="password" id="signup-password" placeholder="At least 6 characters">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Confirm Password</label>
+                            <input type="password" id="signup-confirm" placeholder="Confirm your password">
+                        </div>
+                        
+                        <div id="signup-error" class="error-message"></div>
+                        
+                        <button id="signup-btn" class="btn btn-success full-width">Create Account</button>
+                        
+                        <div class="form-footer">
+                            <button id="show-login" class="link-btn">Already have an account? Sign in here</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Application -->
+        <div id="main-app" class="main-container hidden">
+            <!-- Header -->
+            <header class="app-header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <h1 id="header-title">Shiur Gimmel Summer Mivtzah</h1>
+                        <p id="header-subtitle">Welcome back!</p>
+                    </div>
+                    <div class="header-right">
+                        <select id="week-selector" class="week-selector">
+                            <option value="chukas">Parshas Chukas</option>
+                            <option value="balak">Parshas Balak</option>
+                            <option value="pinchas">Parshas Pinchas</option>
+                            <option value="matos-massei">Parshas Matos-Massei</option>
+                            <option value="devarim">Parshas Devarim</option>
+                        </select>
+                        <button id="logout-btn" class="btn btn-outline">Logout</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Navigation Tabs -->
+            <nav class="nav-tabs">
+                <div class="nav-container">
+                    <div id="nav-tabs" class="tabs-list"></div>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- Dashboard -->
+                <div id="dashboard-content" class="content-section">
+                    <div class="stats-grid">
+                        <div class="stat-card blue">
+                            <div class="stat-content">
+                                <div class="stat-text">
+                                    <p class="stat-label">Total Points</p>
+                                    <p id="total-points" class="stat-value">0</p>
+                                </div>
+                                <div class="stat-icon">
+                                    <i data-lucide="trophy"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card green">
+                            <div class="stat-content">
+                                <div class="stat-text">
+                                    <p class="stat-label">This Week</p>
+                                    <p id="week-points" class="stat-value">0</p>
+                                </div>
+                                <div class="stat-icon">
+                                    <i data-lucide="star"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card purple">
+                            <div class="stat-content">
+                                <div class="stat-text">
+                                    <p class="stat-label">Current Parsha</p>
+                                    <p id="current-parsha" class="stat-value">Chukas</p>
+                                </div>
+                                <div class="stat-icon">
+                                    <i data-lucide="calendar"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="event-goal-card" class="stat-card red">
+                            <div class="stat-content">
+                                <div class="stat-text">
+                                    <p class="stat-label">Event Goal</p>
+                                    <p id="event-goal" class="stat-value">1500</p>
+                                </div>
+                                <div class="stat-icon">
+                                    <i data-lucide="target"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-grid">
+                        <div class="progress-card">
+                            <h3>Weekly Progress</h3>
+                            <div id="weekly-progress" class="progress-list"></div>
+                        </div>
+
+                        <div class="leaderboard-card">
+                            <h3>Top Performers</h3>
+                            <div id="leaderboard" class="leaderboard-list"></div>
+                            <div id="user-rank" class="user-rank"></div>
+                        </div>
+                    </div>                    <div class="action-buttons">
+                        <button id="nav-to-submit" class="btn btn-primary action-btn">
+                            <i data-lucide="check-circle"></i>
+                            Submit Today's Progress
+                        </button>
+                        <button id="nav-to-tests" class="btn btn-success action-btn">
+                            <i data-lucide="book-open"></i>
+                            Submit Weekly Tests
+                        </button>
+                        <button id="nav-to-auction" class="btn btn-purple action-btn">
+                            <i data-lucide="gift"></i>
+                            Chinese Auction
+                        </button>
+                        <button id="contact-admin-btn" class="btn btn-outline action-btn">
+                            <i data-lucide="message-circle"></i>
+                            Contact Admin
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Daily Progress Form -->
+                <div id="submit-content" class="content-section hidden">
+                    <div id="daily-form-container"></div>
+                </div>
+
+                <!-- Weekly Tests -->
+                <div id="weekly-content" class="content-section hidden">
+                    <div id="weekly-tests-container"></div>
+                </div>                <!-- Messages -->
+                <div id="messages-content" class="content-section hidden">
+                    <div id="messages-container"></div>
+                </div>
+
+                <!-- Profile -->
+                <div id="profile-content" class="content-section hidden">
+                    <div id="profile-container"></div>
+                </div>
+
+                <!-- Chinese Auction -->
+                <div id="auction-content" class="content-section hidden">
+                    <div id="auction-container"></div>
+                </div>
+
+                <!-- Admin Dashboard -->
+                <div id="admin-dashboard-content" class="content-section hidden">
+                    <div id="admin-dashboard-container"></div>
+                </div>                <!-- Admin Students -->
+                <div id="admin-students-content" class="content-section hidden">
+                    <div id="admin-students-container"></div>
+                </div>
+
+                <!-- Admin Messages -->
+                <div id="admin-messages-content" class="content-section hidden">
+                    <div id="admin-messages-container"></div>
+                </div>
+
+                <!-- Admin Auction -->
+                <div id="admin-auction-content" class="content-section hidden">
+                    <div id="admin-auction-container"></div>
+                </div>
+
+                <!-- Admin Settings -->
+                <div id="admin-settings-content" class="content-section hidden">
+                    <div id="admin-settings-container"></div>
+                </div>
+
+                <!-- Admin Reports -->
+                <div id="admin-reports-content" class="content-section hidden">
+                    <div id="admin-reports-container"></div>
+                </div>
+            </main>
+        </div>
+    </div>    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p class="loading-text">Processing...</p>
+        </div>
+    </div>    <!-- Notification Container -->
+    <div id="notification-container" class="notification-container"></div>
+
+    <!-- Student Compose Message Modal -->
+    <div id="student-compose-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>New Message</h3>
+                <button id="close-student-compose-modal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="student-compose-message">Message</label>
+                    <textarea id="student-compose-message" rows="6" placeholder="Type your message here..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-student-compose" class="btn btn-secondary">Cancel</button>
+                <button id="send-student-compose" class="btn btn-primary">Send Message</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Reply Modal -->
+    <div id="student-reply-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Reply to Message</h3>
+                <button id="close-student-reply-modal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="student-reply-original"></div>
+                <div class="input-group">
+                    <label for="student-reply-message">Your Reply</label>
+                    <textarea id="student-reply-message" rows="6" placeholder="Type your reply here..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-student-reply" class="btn btn-secondary">Cancel</button>
+                <button id="send-student-reply" class="btn btn-primary">Send Reply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Compose Message Modal -->
+    <div id="admin-compose-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>New Message</h3>
+                <button id="close-admin-compose-modal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="admin-compose-recipient">To</label>
+                    <select id="admin-compose-recipient">
+                        <option value="">Select recipient...</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="admin-compose-subject">Subject</label>
+                    <input type="text" id="admin-compose-subject" placeholder="Message subject">
+                </div>
+                <div class="input-group">
+                    <label for="admin-compose-message">Message</label>
+                    <textarea id="admin-compose-message" rows="6" placeholder="Type your message here..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-admin-compose" class="btn btn-secondary">Cancel</button>
+                <button id="send-admin-compose" class="btn btn-primary">Send Message</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Reply Modal -->
+    <div id="admin-reply-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Reply to Message</h3>
+                <button id="close-admin-reply-modal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="admin-reply-original"></div>
+                <div class="input-group">
+                    <label for="admin-reply-message">Your Reply</label>
+                    <textarea id="admin-reply-message" rows="6" placeholder="Type your reply here..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-admin-reply" class="btn btn-secondary">Cancel</button>
+                <button id="send-admin-reply" class="btn btn-primary">Send Reply</button>
+            </div>
+        </div>
+    </div>    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <!-- Load modules in order: core, messaging, student, admin modules, main coordinator -->
+    <script src="core.js?v=10"></script>
+    <script src="messaging.js?v=10"></script>
+    <script src="student.js?v=10"></script>
+    <script src="admin-dashboard.js?v=10"></script>
+    <script src="admin-users.js?v=10"></script>
+    <script src="admin-messaging.js?v=10"></script>
+    <script src="admin-settings.js?v=10"></script>
+    <script src="admin-reports.js?v=10"></script>
+    <script src="admin.js?v=10"></script>
+    <script src="main.js?v=10"></script>
+</body>
+</html>
